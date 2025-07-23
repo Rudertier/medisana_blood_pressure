@@ -1,0 +1,14 @@
+{
+    "config": {
+        "step": {
+            "bluetooth_confirm": {
+                "description": "Möchtest du das Medisana Blutdruckgerät `{name}` hinzufügen?",
+                "title": "Medisana Blutdruckgerät bestätigen"
+            }
+        },
+        "abort": {
+            "not_supported": "Das Bluetooth-Gerät wird nicht unterstützt.",
+            "no_devices_found": "Keine passenden Medisana Blutdruckgeräte gefunden."
+        }
+    }
+}
