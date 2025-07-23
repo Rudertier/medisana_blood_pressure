@@ -36,7 +36,7 @@ class MedisanaBPBluetoothDeviceData(BluetoothData):
         return "Medisana BP"
 
 
-def parse_blood_pressure(data: bytes) -> dict:
+def parse_blood_pressure(data: bytes) -> dict: #noqa PLR0915
     """Parse blood pressure data from Medisana BP."""
     offset = 0
     flags = data[offset]
