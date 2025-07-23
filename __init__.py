@@ -12,7 +12,7 @@ from .sensor import MedisanaCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+async def async_setup(hass: HomeAssistant, config: dict) -> bool:#noqa ARG001
     """Set up via configuration.yaml (nicht verwendet)."""
     return True  # Oder False, wenn du nur config flow unterstützen möchtest
 
