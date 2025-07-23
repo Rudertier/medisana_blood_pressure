@@ -7,6 +7,29 @@ dependencies = [
     "homeassistant>=2024.12.5",
     "ruff>=0.12.4",
 ]
+[tool.ruff]
+target-version = "py310"
+src = ["src", "tests"]
 
+[tool.ruff.lint]
+select = [
+    "E", "F", "I", "B", "UP", "C90", "N", "D", "PL",
+    "PERF", "RUF", "SIM", "PTH", "TRY", "FBT"
+]
+ignore = [
+    "E501",   # Zeilenlänge (Black übernimmt das)
+    "D102",   # Fehlender Docstring in public Methoden
+    "D107",   # Fehlender Docstring in __init__
+    "D203",   # Konflikt mit D211 (Black bevorzugt D211)
+    "D213"    # Konflikt mit D212 (Black bevorzugt D212)
+]
 
-#  mac_address: "A4:C1:38:C6:B3:C5"
+[tool.ruff.lint.isort]
+known-first-party = ["dein_paketname"]
+combine-as-imports = true
+force-sort-within-sections = true
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"

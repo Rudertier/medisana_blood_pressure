@@ -1,15 +1,13 @@
-"""Parser for Medisana Bloodpressure devices"""
+"""Parser for Medisana Bloodpressure devices."""
 
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime
 import logging
-from bluetooth_sensor_state_data import BluetoothData
-
 import struct
 
-from datetime import datetime
-
+from bluetooth_sensor_state_data import BluetoothData
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,12 +26,7 @@ class MedisanaBPBluetoothDeviceData(BluetoothData):
 
     def supported(self, service_info) -> bool:
         """Return True if this device is supported."""
-
-
-        if service_info.name and service_info.name.startswith("1872B"):
-            return True
-
-        return False
+        return service_info.name and service_info.name.startswith("1872B")
 
     @property
     def title(self):
@@ -44,6 +37,7 @@ class MedisanaBPBluetoothDeviceData(BluetoothData):
 
 
 def parse_blood_pressure(data: bytes) -> dict:
+    """Parse blood pressure data from Medisana BP."""
     offset = 0
     flags = data[offset]
     offset += 1
@@ -60,9 +54,9 @@ def parse_blood_pressure(data: bytes) -> dict:
         raw = struct.unpack('<H', b)[0]
         mantissa = raw & 0x0FFF
         exponent = (raw & 0xF000) >> 12
-        if exponent >= 0x8:
+        if exponent >= 0x8:#noqa PLR2004
             exponent = exponent - 0x10
-        if mantissa >= 0x800:
+        if mantissa >= 0x800: #noqa PLR2004
             mantissa = mantissa - 0x1000
         return mantissa * (10 ** exponent)
 

@@ -2,22 +2,20 @@
 
 from __future__ import annotations
 
-from typing import Any
 import logging
-
-import voluptuous as vol
+from typing import Any
 
 from homeassistant.components.bluetooth import (
     BluetoothServiceInfoBleak,
     async_discovered_service_info,
 )
 from homeassistant.config_entries import ConfigFlow
-from homeassistant.data_entry_flow import FlowResult
 from homeassistant.const import CONF_ADDRESS
+from homeassistant.data_entry_flow import FlowResult
+import voluptuous as vol
 
-from .medisana_bp import MedisanaBPBluetoothDeviceData
 from .const import DOMAIN
-
+from .medisana_bp import MedisanaBPBluetoothDeviceData
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -37,7 +35,6 @@ class MedisanaBPConfigFlow(ConfigFlow, domain=DOMAIN):
         self, discovery_info: BluetoothServiceInfoBleak
     ) -> FlowResult:
         """Handle the bluetooth discovery step."""
-
         _LOGGER.warning("MedisanaBPConfigFlow async_step_bluetooth")
         await self.async_set_unique_id(discovery_info.address)
         self._abort_if_unique_id_configured()
@@ -83,7 +80,7 @@ class MedisanaBPConfigFlow(ConfigFlow, domain=DOMAIN):
             )
 
         current_addresses = self._async_current_ids()
-        for discovery_info in async_discovered_service_info(self.hass, False):
+        for discovery_info in async_discovered_service_info(self.hass,connectable= False):
             address = discovery_info.address
             if address in current_addresses or address in self._discovered_devices:
                 continue

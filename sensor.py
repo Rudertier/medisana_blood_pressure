@@ -1,28 +1,28 @@
 """Sensor platform for Medisana Blood Pressure."""
 from __future__ import annotations
 
-from typing import Any
 import asyncio
+from datetime import UTC, datetime, timedelta
+import logging
+from typing import Any
+
+from bleak import BleakClient, BleakError
+from homeassistant.components import bluetooth
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.const import UnitOfPressure, SIGNAL_STRENGTH_DECIBELS_MILLIWATT
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import SIGNAL_STRENGTH_DECIBELS_MILLIWATT, UnitOfPressure
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
 )
-from bleak import BleakClient, BleakError
-from homeassistant.components import bluetooth
-from homeassistant.config_entries import ConfigEntry
 
-import logging
-from datetime import timedelta, datetime, UTC
-
-from .const import DOMAIN, BP_MEASUREMENT_UUID,CHARACTERISTIC_BATTERY
+from .const import BP_MEASUREMENT_UUID, CHARACTERISTIC_BATTERY, DOMAIN
 from .medisana_bp import parser
 
 _LOGGER = logging.getLogger(__name__)
@@ -41,7 +41,7 @@ async def async_setup_entry(
     try:
         coordinator: MedisanaCoordinator = hass.data[DOMAIN][entry.entry_id]
     except KeyError:
-        _LOGGER.error(f"No coordinator found for entry_id {entry.entry_id}")
+        _LOGGER.exception(f"No coordinator found for entry_id {entry.entry_id}")
         return
     async_add_entities([MbpsMeanArterial(coordinator),
                         MbpsRssi(coordinator),
@@ -131,9 +131,9 @@ class MedisanaCoordinator(DataUpdateCoordinator):
                 await client.stop_notify(BP_MEASUREMENT_UUID)
                 _LOGGER.warning(f"Stopped notifications for {self.mac_address}")
         except BleakError as error:
-            _LOGGER.error(f"Failed to connect to {self.mac_address} {error}")
+            _LOGGER.warning(f"Failed to connect to {self.mac_address} {error}")
         except TimeoutError as error:
-            _LOGGER.error(f"Timed out {self.mac_address} {error}")
+            _LOGGER.warning(f"Timed out {self.mac_address} {error}")
 
 
     @callback
@@ -204,7 +204,6 @@ class MbpsMeanArterial(CoordinatorEntity, SensorEntity):
 
 class MbpsRssi(CoordinatorEntity, SensorEntity):
     """Representation of the Medisana Blood Pressure sensor."""
-
 
     _attr_name = "Signal Strength"
     _attr_device_class = SensorDeviceClass.SIGNAL_STRENGTH
@@ -441,7 +440,6 @@ class MbpsBattery(CoordinatorEntity, SensorEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Update the battery sensor with the latest value."""
-
         if not self.coordinator.data:
             _LOGGER.warning("No data available for battery sensor update")
             return

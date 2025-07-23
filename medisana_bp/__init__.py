@@ -1,4 +1,4 @@
-"""Parser for MedisanaBloodPressure BLE devices. """
+"""Parser for MedisanaBloodPressure BLE devices."""
 from __future__ import annotations
 
 from .parser import MedisanaBPBluetoothDeviceData
