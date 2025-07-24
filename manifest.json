@@ -18,6 +18,7 @@
     }
   ],
   "documentation": "https://github.com/Rudertier/medisana_blood_pressure",
+  "issue_tracker": "https://github.com/Rudertier/medisana_blood_pressure/issues",
   "config_flow": true,
   "iot_class": "local_push",
   "requirements": [],
