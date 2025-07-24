@@ -19,8 +19,8 @@
   "config_flow": true,
   "dependencies": ["bluetooth_adapters"],
   "documentation": "https://github.com/Rudertier/medisana_blood_pressure",
-  "issue_tracker": "https://github.com/Rudertier/medisana_blood_pressure/issues",
   "iot_class": "local_push",
+  "issue_tracker": "https://github.com/Rudertier/medisana_blood_pressure/issues",
   "requirements": [],
   "version": "0.1.0"
 }
