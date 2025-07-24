@@ -1,6 +1,4 @@
 {
-  Manifest keys are not sorted correctly: domain, name, then alphabetical order
-
   "domain": "medisana_blood_pressure",
   "name": "medisana_blood_pressure",
   "bluetooth": [
