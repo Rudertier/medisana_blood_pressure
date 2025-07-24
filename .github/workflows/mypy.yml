@@ -25,11 +25,13 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install project with uv
+      - name: Create virtual environment
+        run: uv venv
+
+      - name: Activate venv and install project
         run: |
-          uv pip install .  # Installiert dein Projekt + Abhängigkeiten
-          uv pip install mypy types-requests  # falls nötig
+          source .venv/bin/activate
+          uv pip install .
+          uv pip install mypy types-requests
 
       - name: Run mypy
-        run: |
-          mypy
