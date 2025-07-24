@@ -17,7 +17,7 @@
       "connectable": false
     }
   ],
-  "documentation": "https://github.com/home-assistant/",
+  "documentation": "https://github.com/Rudertier/medisana_blood_pressure",
   "config_flow": true,
   "iot_class": "local_push",
   "requirements": [],
