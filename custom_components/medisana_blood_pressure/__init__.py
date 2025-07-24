@@ -6,8 +6,8 @@ import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN
-from .sensor import MedisanaCoordinator
+from custom_components.medisana_blood_pressure.const import DOMAIN
+from custom_components.medisana_blood_pressure.sensor import MedisanaCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
