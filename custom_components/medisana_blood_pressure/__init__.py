@@ -3,11 +3,10 @@ from __future__ import annotations
 
 import logging
 
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
-
 from custom_components.medisana_blood_pressure.const import DOMAIN
 from custom_components.medisana_blood_pressure.sensor import MedisanaCoordinator
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 
 _LOGGER = logging.getLogger(__name__)
 

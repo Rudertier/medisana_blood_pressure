@@ -169,7 +169,7 @@ class MedisanaCoordinator(DataUpdateCoordinator):
 class MedisanaRestoreSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
     """Basisklasse für Medisana-Sensoren mit RestoreEntity-Unterstützung."""
 
-    def __init__(
+    def __init__(#noqa plr0913
         self,
         coordinator: MedisanaCoordinator,
         name: str,
@@ -225,6 +225,8 @@ class MedisanaRestoreSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
 
 
 class MbpsBattery(MedisanaRestoreSensor):
+    """Sensor containing Battery data."""
+
     def __init__(self, coordinator: MedisanaCoordinator) -> None:
         super().__init__(
             coordinator,
@@ -236,6 +238,8 @@ class MbpsBattery(MedisanaRestoreSensor):
         )
 
 class MbpsSystolic(MedisanaRestoreSensor):
+    """Sensor containing the systolic blood pressure in mmHg."""
+
     def __init__(self, coordinator: MedisanaCoordinator) -> None:
         super().__init__(
             coordinator,
@@ -247,6 +251,8 @@ class MbpsSystolic(MedisanaRestoreSensor):
         )
 
 class MbpsDiastolic(MedisanaRestoreSensor):
+    """Sensor containing the diastolic blood pressure in mmHg."""
+
     def __init__(self, coordinator: MedisanaCoordinator) -> None:
         super().__init__(
             coordinator,
@@ -258,6 +264,8 @@ class MbpsDiastolic(MedisanaRestoreSensor):
         )
 
 class MbpsMeanArterial(MedisanaRestoreSensor):
+    """Sensor containing the mean arterial blood pressure in mmHg."""
+
     def __init__(self, coordinator: MedisanaCoordinator) -> None:
         super().__init__(
             coordinator,
@@ -269,6 +277,8 @@ class MbpsMeanArterial(MedisanaRestoreSensor):
         )
 
 class MbpsPulse(MedisanaRestoreSensor):
+    """Sensor containing the heart rate bpm."""
+
     def __init__(self, coordinator: MedisanaCoordinator) -> None:
         super().__init__(
             coordinator,
@@ -280,6 +290,8 @@ class MbpsPulse(MedisanaRestoreSensor):
         )
 
 class MbpsRssi(MedisanaRestoreSensor):
+    """Sensor containing the signal strength."""
+
     def __init__(self, coordinator: MedisanaCoordinator) -> None:
         super().__init__(
             coordinator,
@@ -291,6 +303,8 @@ class MbpsRssi(MedisanaRestoreSensor):
         )
 
 class MbpsUserId(MedisanaRestoreSensor):
+    """Sensor containing the user id."""
+
     def __init__(self, coordinator: MedisanaCoordinator) -> None:
         super().__init__(
             coordinator,
@@ -308,7 +322,7 @@ class MbpsUserId(MedisanaRestoreSensor):
 
 
 class MbpsLastMeasurement(CoordinatorEntity, SensorEntity):
-    """Representation of the Medisana Blood Pressure sensor."""
+    """Sensor containing the last measurement time and the data transferred."""
 
     _attr_name = "Last Measurement"
     _attr_device_class = None
