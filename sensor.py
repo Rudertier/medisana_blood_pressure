@@ -17,6 +17,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import SIGNAL_STRENGTH_DECIBELS_MILLIWATT, UnitOfPressure
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
@@ -165,35 +166,56 @@ class MedisanaCoordinator(DataUpdateCoordinator):
         _LOGGER.warning(f"Unsubscribed BLE callback for {self.mac_address}")
 
 
-class MbpsMeanArterial(CoordinatorEntity, SensorEntity):
-    """Representation of the Medisana Blood Pressure sensor."""
+class MedisanaRestoreSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
+    """Basisklasse für Medisana-Sensoren mit RestoreEntity-Unterstützung."""
 
-    _attr_name = "Mean Arterial Pressure"
-    _attr_device_class = SensorDeviceClass.PRESSURE
-    _attr_native_unit_of_measurement = UnitOfPressure.MMHG
-    _attr_state_class = SensorStateClass.MEASUREMENT
-
-    def __init__(self, coordinator: MedisanaCoordinator) -> None:
+    def __init__(
+        self,
+        coordinator: MedisanaCoordinator,
+        name: str,
+        unique_id_suffix: str,
+        data_key: str,
+        unit: str | None = None,
+        device_class: SensorDeviceClass | None = None,
+        state_class: SensorStateClass | None = SensorStateClass.MEASUREMENT,
+    ) -> None:
         super().__init__(coordinator)
-        self._attr_unique_id = f"medisana_bp_mean_arterial_{coordinator.mac_address}"
+        self._attr_name = name
+        self._attr_unique_id = f"medisana_bp_{unique_id_suffix}_{coordinator.mac_address}"
+        self._attr_native_unit_of_measurement = unit
+        self._attr_device_class = device_class
+        self._attr_state_class = state_class
         self._native_value: int | None = None
-        self.device_info= coordinator.device_info
+        self._data_key = data_key
+        self.device_info = coordinator.device_info
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+
+        if self._native_value is not None:
+            return
+
+        state = await self.async_get_last_state()
+        if state and state.state not in (None, "unknown", "unavailable"):
+            try:
+                self._native_value = int(state.state)
+                _LOGGER.debug(f"[Restore] {self._attr_name} restored value: {self._native_value}")
+            except ValueError:
+                _LOGGER.warning(f"[Restore] Failed to restore {self._attr_name} from {state.state}")
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Update the sensor with the latest value."""
-        _LOGGER.warning(f"_handle_coordinator_update Mean Arterial Pressure: {self.coordinator.data}")
-        if self.coordinator.data is None:
+        if not self.coordinator.data:
             return
 
         key = max(self.coordinator.data.keys())
-        mean_arterial_pressure = self.coordinator.data[key].get("mean_arterial_pressure")
+        value = self.coordinator.data[key].get(self._data_key)
 
-        if mean_arterial_pressure is not None:
-            self._native_value = mean_arterial_pressure
-            _LOGGER.warning(f"mean_arterial_pressure level updated: {self._native_value}%")
+        if value is not None:
+            self._native_value = value
+            _LOGGER.debug(f"[Update] {self._attr_name} updated: {self._native_value}")
         else:
-            _LOGGER.warning("mean_arterial_pressure level not available in the latest data")
+            _LOGGER.debug(f"[Update] {self._attr_name} not available in data")
 
         self.async_write_ha_state()
 
@@ -202,183 +224,84 @@ class MbpsMeanArterial(CoordinatorEntity, SensorEntity):
         return self._native_value
 
 
-class MbpsRssi(CoordinatorEntity, SensorEntity):
-    """Representation of the Medisana Blood Pressure sensor."""
-
-    _attr_name = "Signal Strength"
-    _attr_device_class = SensorDeviceClass.SIGNAL_STRENGTH
-    _attr_native_unit_of_measurement = SIGNAL_STRENGTH_DECIBELS_MILLIWATT
-    _attr_state_class = SensorStateClass.MEASUREMENT
-
+class MbpsBattery(MedisanaRestoreSensor):
     def __init__(self, coordinator: MedisanaCoordinator) -> None:
-        super().__init__(coordinator)
-        self._attr_unique_id = f"medisana_bp_rssi_{coordinator.mac_address}"
-        self._native_value: int | None = None
-        self.device_info= coordinator.device_info
+        super().__init__(
+            coordinator,
+            name="Battery Level",
+            unique_id_suffix="battery",
+            data_key="battery",
+            unit='%',
+            device_class=SensorDeviceClass.BATTERY,
+        )
 
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Update the sensor with the latest value."""
-        _LOGGER.warning(f"_handle_coordinator_update Signal Strength: {self.coordinator.data}")
-        if self.coordinator.data is None:
-            return
-
-        key = max(self.coordinator.data.keys())
-        rssi = self.coordinator.data[key].get("rssi")
-        self._native_value = rssi
-
-        if rssi is not None:
-            _LOGGER.warning(f"rssi level updated: {self._native_value}%")
-        else:
-            _LOGGER.warning("rssi level not available in the latest data")
-        self.async_write_ha_state()
-
-    @property
-    def native_value(self) -> int | None:
-        return self._native_value
-
-
-class MbpsPulse(CoordinatorEntity, SensorEntity):
-    """Representation of the Medisana Blood Pressure sensor."""
-
-    _attr_name = "Heart Rate"
-    _attr_device_class = SensorDeviceClass.FREQUENCY
-    _attr_native_unit_of_measurement = 'bpm'
-    _attr_state_class = SensorStateClass.MEASUREMENT
-
+class MbpsSystolic(MedisanaRestoreSensor):
     def __init__(self, coordinator: MedisanaCoordinator) -> None:
-        super().__init__(coordinator)
-        self._attr_unique_id = f"medisana_bp_heart_rate_{coordinator.mac_address}"
-        self._native_value: int | None = None
-        self.device_info= coordinator.device_info
+        super().__init__(
+            coordinator,
+            name="Systolic Pressure",
+            unique_id_suffix="systolic",
+            data_key="systolic",
+            unit=UnitOfPressure.MMHG,
+            device_class=SensorDeviceClass.PRESSURE,
+        )
 
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Update the sensor with the latest value."""
-        if self.coordinator.data is None:
-            return
-        key = max(self.coordinator.data.keys())
-        pulse_rate = self.coordinator.data[key].get("pulse_rate")
-
-        if pulse_rate is not None:
-            self._native_value = pulse_rate
-            _LOGGER.warning(f"pulse_rate level updated: {self._native_value}%")
-        else:
-            _LOGGER.warning("pulse_rate level not available in the latest data")
-
-        self.async_write_ha_state()
-
-    @property
-    def native_value(self) -> int | None:
-        return self._native_value
-
-
-
-class MbpsSystolic(CoordinatorEntity, SensorEntity):
-    """Representation of the Medisana Blood Pressure sensor."""
-
-    _attr_name = "Systolic Pressure"
-    _attr_device_class = SensorDeviceClass.PRESSURE
-    _attr_native_unit_of_measurement = UnitOfPressure.MMHG
-    _attr_state_class = SensorStateClass.MEASUREMENT
-
+class MbpsDiastolic(MedisanaRestoreSensor):
     def __init__(self, coordinator: MedisanaCoordinator) -> None:
-        super().__init__(coordinator)
-        self._attr_unique_id = f"medisana_bp_systolic_{coordinator.mac_address}"
-        self._native_value: int | None = None
-        self.device_info= coordinator.device_info
+        super().__init__(
+            coordinator,
+            name="Diastolic Pressure",
+            unique_id_suffix="diastolic",
+            data_key="diastolic",
+            unit=UnitOfPressure.MMHG,
+            device_class=SensorDeviceClass.PRESSURE,
+        )
 
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Update the sensor with the latest value."""
-        if self.coordinator.data is None:
-            return
-        key = max(self.coordinator.data.keys())
-        systolic = self.coordinator.data[key].get("systolic")
-
-        if systolic is not None:
-            self._native_value = systolic
-            _LOGGER.warning(f"systolic level updated: {self._native_value}%")
-        else:
-            _LOGGER.warning("systolic level not available in the latest data")
-
-        self.async_write_ha_state()
-
-    @property
-    def native_value(self) -> int | None:
-        return self._native_value
-
-
-
-
-class MbpsDiastolic(CoordinatorEntity, SensorEntity):
-    """Representation of the Medisana Blood Pressure sensor."""
-
-    _attr_name = "Diastolic Pressure"
-    _attr_device_class = SensorDeviceClass.PRESSURE
-    _attr_native_unit_of_measurement = UnitOfPressure.MMHG
-    _attr_state_class = SensorStateClass.MEASUREMENT
-
+class MbpsMeanArterial(MedisanaRestoreSensor):
     def __init__(self, coordinator: MedisanaCoordinator) -> None:
-        super().__init__(coordinator)
-        self._attr_unique_id = f"medisana_bp_diastolic_{coordinator.mac_address}"
-        self._native_value: int | None = None
-        self.device_info= coordinator.device_info
+        super().__init__(
+            coordinator,
+            name="Mean Arterial Pressure",
+            unique_id_suffix="mean_arterial",
+            data_key="mean_arterial_pressure",
+            unit=UnitOfPressure.MMHG,
+            device_class=SensorDeviceClass.PRESSURE,
+        )
 
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Update the sensor with the latest value."""
-        if self.coordinator.data is None:
-            return
-        key = max(self.coordinator.data.keys())
-        diastolic = self.coordinator.data[key].get("diastolic")
-
-        if diastolic is not None:
-            self._native_value = diastolic
-            _LOGGER.warning(f"diastolic level updated: {self._native_value}%")
-        else:
-            _LOGGER.warning("diastolic level not available in the latest data")
-
-        self.async_write_ha_state()
-
-    @property
-    def native_value(self) -> int | None:
-        return self._native_value
-
-class MbpsUserId(CoordinatorEntity, SensorEntity):
-    """Representation of the Medisana Blood Pressure sensor."""
-
-    _attr_name = "User Id"
-    _attr_device_class = None
-    _attr_native_unit_of_measurement = None
-    _attr_state_class = None
-
+class MbpsPulse(MedisanaRestoreSensor):
     def __init__(self, coordinator: MedisanaCoordinator) -> None:
-        super().__init__(coordinator)
-        self._attr_unique_id = f"medisana_bp_user_id_{coordinator.mac_address}"
-        self._native_value: int | None = None
-        self.device_info= coordinator.device_info
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Update the sensor with the latest value."""
-        if self.coordinator.data is None:
-            return
-        key = max(self.coordinator.data.keys())
+        super().__init__(
+            coordinator,
+            name="Heart Rate",
+            unique_id_suffix="pulse",
+            data_key="pulse_rate",
+            unit="bpm",
+            device_class=SensorDeviceClass.FREQUENCY,
+        )
 
+class MbpsRssi(MedisanaRestoreSensor):
+    def __init__(self, coordinator: MedisanaCoordinator) -> None:
+        super().__init__(
+            coordinator,
+            name="Signal Strength",
+            unique_id_suffix="rssi",
+            data_key="rssi",
+            unit=SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
+            device_class=SensorDeviceClass.SIGNAL_STRENGTH,
+        )
 
-        user_id = self.coordinator.data[key].get("user_id")
+class MbpsUserId(MedisanaRestoreSensor):
+    def __init__(self, coordinator: MedisanaCoordinator) -> None:
+        super().__init__(
+            coordinator,
+            name="User Id",
+            unique_id_suffix="user_id",
+            data_key="user_id",
+            unit=None,
+            device_class=None,
+            state_class=None,
+        )
 
-        if user_id is not None:
-            self._native_value = user_id
-            _LOGGER.warning(f"user_id level updated: {self._native_value}%")
-        else:
-            _LOGGER.warning("user_id level not available in the latest data")
-
-        self.async_write_ha_state()
-
-    @property
-    def native_value(self) -> int | None:
-        return self._native_value
 
 
 
@@ -421,41 +344,4 @@ class MbpsLastMeasurement(CoordinatorEntity, SensorEntity):
         return self.coordinator.data
 
 
-
-
-class MbpsBattery(CoordinatorEntity, SensorEntity):
-    """Representation of the Medisana Blood Pressure Battery Level sensor."""
-
-    _attr_name = "Battery Level"
-    _attr_device_class = SensorDeviceClass.BATTERY
-    _attr_native_unit_of_measurement = "%"
-    _attr_state_class = SensorStateClass.MEASUREMENT
-
-    def __init__(self, coordinator: MedisanaCoordinator) -> None:
-        super().__init__(coordinator)
-        self._attr_unique_id = f"medisana_bp_battery_{coordinator.mac_address}"
-        self._native_value: int | None = None
-        self.device_info= coordinator.device_info
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Update the battery sensor with the latest value."""
-        if not self.coordinator.data:
-            _LOGGER.warning("No data available for battery sensor update")
-            return
-
-        key = max(self.coordinator.data.keys())
-        battery = self.coordinator.data[key].get("battery_level")
-
-        if battery is not None:
-            self._native_value = battery
-            _LOGGER.warning(f"Battery level updated: {self._native_value}%")
-        else:
-            _LOGGER.warning("Battery level not available in the latest data")
-
-        self.async_write_ha_state()
-
-    @property
-    def native_value(self) -> int | None:
-        return self._native_value
 

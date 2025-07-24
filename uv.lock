@@ -866,6 +866,20 @@ wheels = [
 ]
 
 [[package]]
+name = "bluetooth-sensor-state-data"
+version = "1.9.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "bluetooth-data-tools" },
+    { name = "habluetooth" },
+    { name = "sensor-state-data" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/04/c4/393f68816657786c4b19f6e4856ced892457321acb67e8bf7d91a76e9a98/bluetooth_sensor_state_data-1.9.0.tar.gz", hash = "sha256:d289b86e4a65a5bccce6310f686d6f3e4ac4a2c56a13c2fccb475a6894667139", size = 8563 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d9/59/85792cf2b2cec2a0bbaee6de53f95e68dcfbeb0363a843bddb2360031374/bluetooth_sensor_state_data-1.9.0-py3-none-any.whl", hash = "sha256:adf3b17774011f188b8002c54b669e24cd60d3332ef42facd18baa60c56077e3", size = 8840 },
+]
+
+[[package]]
 name = "boto3"
 version = "1.39.8"
 source = { registry = "https://pypi.org/simple" }
@@ -1970,6 +1984,7 @@ name = "medisana-blood-pressure"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "bluetooth-sensor-state-data" },
     { name = "homeassistant", version = "2024.12.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.13'" },
     { name = "homeassistant", version = "2025.4.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.13' and python_full_version < '3.13.2'" },
     { name = "homeassistant", version = "2025.7.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.13.2'" },
@@ -1978,6 +1993,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "bluetooth-sensor-state-data", specifier = ">=1.9.0" },
     { name = "homeassistant", specifier = ">=2024.12.5" },
     { name = "ruff", specifier = ">=0.12.4" },
 ]
@@ -2927,6 +2943,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/88/5b/da5f56ad39cbb1ca49bd0d4cccde7e97ea7d01fa724fa953746fa2b32ee6/securetar-2025.2.1.tar.gz", hash = "sha256:59536a73fe5cecbc1f00b1838c8b1052464a024e2adcf6c9ce1d200d91990fb1", size = 16124 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8f/e0/b93a18e9bb7f7d2573a9c6819d42d996851edde0b0406d017067d7d23a0a/securetar-2025.2.1-py3-none-any.whl", hash = "sha256:760ad9d93579d5923f3d0da86e0f185d0f844cf01795a8754539827bb6a1bab4", size = 11545 },
+]
+
+[[package]]
+name = "sensor-state-data"
+version = "2.18.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/0c/49/c103f258fd5b9beec7c64405720a58e7836aa0fdabfac021df81dffe6d91/sensor_state_data-2.18.1.tar.gz", hash = "sha256:25f17ed98748ae006ddab82d5013cf30301daaf23526d1992f99c4dc0beb49c3", size = 16925 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/61/76/3c1e4b212cd8a05d58e1e12605ceaef04643aa37a2d4c61ed738b7c1a37c/sensor_state_data-2.18.1-py3-none-any.whl", hash = "sha256:45a223acf5d4aefde45c028fa810c7925db6448984097aa1b500fe4f206d113f", size = 18243 },
 ]
 
 [[package]]

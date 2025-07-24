@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.12"
 dependencies = [
+    "bluetooth-sensor-state-data>=1.9.0",
     "homeassistant>=2024.12.5",
     "ruff>=0.12.4",
 ]
