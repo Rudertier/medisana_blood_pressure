@@ -16,9 +16,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install uv
-        uses: taiki-e/install-action@v2
-        with:
-          tool: uv
+        run: |
+          curl -Ls https://astral.sh/uv/install.sh | bash
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -27,9 +27,9 @@ jobs:
 
       - name: Install project with uv
         run: |
-          uv pip install .  # Installiert Abhängigkeiten aus pyproject.toml
-          uv pip install mypy types-requests  # falls nicht schon in pyproject.toml
+          uv pip install .  # Installiert dein Projekt + Abhängigkeiten
+          uv pip install mypy types-requests  # falls nötig
 
       - name: Run mypy
         run: |
-          mypy 
+          mypy
