@@ -9,6 +9,7 @@ import struct
 
 from bluetooth_sensor_state_data import BluetoothData
 
+from habluetooth import BluetoothServiceInfo, BluetoothServiceInfoBleak
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -24,15 +25,15 @@ class MedisanaBPBluetoothDeviceData(BluetoothData):
         self._event = asyncio.Event()
         _LOGGER.warning("Initializing MedisanaBPBluetoothDeviceData")
 
-    def supported(self, service_info) -> bool:
+    def supported(self, service_info: BluetoothServiceInfo | BluetoothServiceInfoBleak) -> bool:
         """Return True if this device is supported."""
-        return service_info.name and service_info.name.startswith("1872B")
+        return bool(service_info.name and service_info.name.startswith("1872B"))
 
     @property
-    def title(self):
+    def title(self)->str|None:
         return "Medisana Blutdruckmesser"
 
-    def get_device_name(self):
+    def get_device_name(self)->str|None:
         return "Medisana BP"
 
 

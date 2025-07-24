@@ -35,3 +35,6 @@ jobs:
           uv pip install mypy types-requests
 
       - name: Run mypy
+        run: |
+          source .venv/bin/activate
+          mypy custom_components/

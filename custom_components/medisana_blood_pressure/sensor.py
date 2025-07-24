@@ -37,8 +37,6 @@ async def async_setup_entry(
     """Set up Medisana blood pressure sensor from a config entry."""
     _LOGGER.warning(f"Sensor async_setup_entry: {entry}")
 
-    coordinator: MedisanaCoordinator
-
     try:
         coordinator: MedisanaCoordinator = hass.data[DOMAIN][entry.entry_id]
     except KeyError:

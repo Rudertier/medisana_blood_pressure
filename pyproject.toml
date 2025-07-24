@@ -6,6 +6,7 @@ requires-python = ">=3.12"
 dependencies = [
     "bluetooth-sensor-state-data>=1.9.0",
     "homeassistant>=2024.12.5",
+    "mypy>=1.17.0",
     "ruff>=0.12.4",
 ]
 [tool.ruff]
@@ -38,8 +39,8 @@ line-ending = "lf"
 
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 ignore_missing_imports = true
 disallow_untyped_defs = true
 strict_optional = true
-files = ["custom_components"]
+files = ["custom_components/medisana_blood_pressure"]
