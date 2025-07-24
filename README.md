@@ -12,3 +12,10 @@ Exposes the following sensors:
  - Bluetooth RSSI
 
 Big thanks to [@bkbilly](https://github.com/bkbilly) for his great work on [medisanabp_ble](https://github.com/bkbilly/medisanabp_ble) — I heavily relied on it for this project.
+
+## License
+
+This project is licensed under the **Creative Commons Attribution-NonCommercial 4.0 International** license (CC BY-NC 4.0).  
+You are free to use, modify, and share the code as long as it's **not for commercial purposes** and appropriate credit is given.
+
+[View License](https://creativecommons.org/licenses/by-nc/4.0/)
