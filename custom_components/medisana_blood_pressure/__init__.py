@@ -7,9 +7,11 @@ from custom_components.medisana_blood_pressure.const import DOMAIN
 from custom_components.medisana_blood_pressure.sensor import MedisanaCoordinator
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import config_validation as cv
 
 _LOGGER = logging.getLogger(__name__)
 
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:#noqa ARG001
     """Set up via configuration.yaml (nicht verwendet)."""
