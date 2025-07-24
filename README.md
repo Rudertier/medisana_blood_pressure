@@ -1,14 +1,4 @@
 # MedisanaBloodPressure Sensor
-
-This is a minimum implementation of an integration providing a sensor measurement.
-
-### Installation
-
-Copy this folder to `<config_dir>/custom_components/medisana_blood_pressure/`.
-
-
-
-# Medisana Blood Pressure BLE
 Integrates Bluetooth LE (https://www.medisana.com/en/Health-control/Blood-pressure-monitor/) to Home Assistant using active connection to get infromation from the sensors.
 
 Exposes the following sensors:
