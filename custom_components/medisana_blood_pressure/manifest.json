@@ -1,8 +1,8 @@
 {
+  Manifest keys are not sorted correctly: domain, name, then alphabetical order
+
   "domain": "medisana_blood_pressure",
   "name": "medisana_blood_pressure",
-  "codeowners": ["@rudertier"],
-  "dependencies": ["bluetooth_adapters"],
   "bluetooth": [
     {
       "manufacturer_id": 18498,
@@ -17,9 +17,11 @@
       "connectable": false
     }
   ],
+  "codeowners": ["@rudertier"],
+  "config_flow": true,
+  "dependencies": ["bluetooth_adapters"],
   "documentation": "https://github.com/Rudertier/medisana_blood_pressure",
   "issue_tracker": "https://github.com/Rudertier/medisana_blood_pressure/issues",
-  "config_flow": true,
   "iot_class": "local_push",
   "requirements": [],
   "version": "0.1.0"
