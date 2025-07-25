@@ -3,11 +3,12 @@ from __future__ import annotations
 
 import logging
 
-from .const import DOMAIN
-from .sensor import MedisanaCoordinator
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
+
+from .const import DOMAIN
+from .sensor import MedisanaCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
