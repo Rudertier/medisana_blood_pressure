@@ -17,6 +17,7 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import SIGNAL_STRENGTH_DECIBELS_MILLIWATT, UnitOfPressure
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import (
@@ -70,11 +71,13 @@ class MedisanaCoordinator(DataUpdateCoordinator):
         self._rssi: int | None = None
         self._battery: int | None = None
 
-        self.device_info = {            "identifiers": {("medisana_blood_pressure", self.mac_address)},
-            "name": "Medisana Blood Pressure Monitor",
-            "manufacturer": "Medisana",
-            "model": "BP BLE Device",
-        }
+        self.device_info: DeviceInfo = DeviceInfo(manufacturer="Medisana",
+                                                  model="BP BLE Device",
+                                                  name ="Medisana Blood Pressure Monitor",
+                                                  serial_number=None,
+                                                  identifiers={("medisana_blood_pressure", self.mac_address)},
+                                                  )
+
 
         self._unsub:Callable|None = bluetooth.async_register_callback(
             hass,
