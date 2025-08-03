@@ -1,20 +1,18 @@
-#Hacs validation currently not working due to "brands".
-#name: Validate
-#
-#on:
+name: Validate
+
+on: {} #Hacs validation currently not working due to "brands".
 #  push:
 #  pull_request:
 #  schedule:
 #    - cron: "0 0 * * *"
 #  workflow_dispatch:
-#
-#permissions: {}
-#
-#jobs:
-#  validate-hacs:
-#    runs-on: "ubuntu-latest"
-#    steps:
-#      - name: HACS validation
-#        uses: "hacs/action@main"
-#        with:
-#          category: "integration"
+permissions: {}
+
+jobs:
+  validate-hacs:
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: HACS validation
+        uses: "hacs/action@main"
+        with:
+          category: "integration"
