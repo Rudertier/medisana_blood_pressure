@@ -9,9 +9,8 @@ from homeassistant.components.bluetooth import (
     BluetoothServiceInfoBleak,
     async_discovered_service_info,
 )
-from homeassistant.config_entries import ConfigFlow
+from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_ADDRESS
-from homeassistant.data_entry_flow import FlowResult
 import voluptuous as vol
 
 from .const import DOMAIN
@@ -33,7 +32,7 @@ class MedisanaBPConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def async_step_bluetooth(
         self, discovery_info: BluetoothServiceInfoBleak
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle the bluetooth discovery step."""
         _LOGGER.warning("MedisanaBPConfigFlow async_step_bluetooth")
         await self.async_set_unique_id(discovery_info.address)
@@ -48,7 +47,7 @@ class MedisanaBPConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def async_step_bluetooth_confirm(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Confirm discovery."""
         _LOGGER.warning("MedisanaBPConfigFlow async_step_bluetooth_confirm")
         assert self._discovered_device is not None
@@ -68,7 +67,7 @@ class MedisanaBPConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle the user step to pick discovered device."""
         _LOGGER.warning("MedisanaBPConfigFlow async_step_user")
         if user_input is not None:
