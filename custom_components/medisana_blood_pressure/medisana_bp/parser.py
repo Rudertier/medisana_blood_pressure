@@ -34,6 +34,7 @@ class MedisanaBPBluetoothDeviceData(BluetoothData):
 
     def supported(self, service_info: BluetoothServiceInfo | BluetoothServiceInfoBleak) -> bool:
         """Return True if this device is supported."""
+        _LOGGER.warning(f"supported?: {service_info} -> {bool(service_info.name and service_info.name.startswith("1872B"))}")
         return bool(service_info.name and service_info.name.startswith("1872B"))
 
     @property
