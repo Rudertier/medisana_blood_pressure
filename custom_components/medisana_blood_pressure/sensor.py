@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 import logging
 from typing import Any
 
@@ -29,7 +29,6 @@ from .const import BP_MEASUREMENT_UUID, CHARACTERISTIC_BATTERY, DOMAIN
 from .medisana_bp import parser
 
 _LOGGER = logging.getLogger(__name__)
-WATCHDOG_TIMEOUT = timedelta(minutes=2)
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -102,7 +101,7 @@ class MedisanaCoordinator(DataUpdateCoordinator):
         if parsed is not None:
             self._latest_value[parsed['timestamp']] = parsed
             self._latest_value[parsed['timestamp']] ['rssi']=self._rssi
-            self._latest_value[parsed['timestamp']] ['battery_level']=self._battery
+            self._latest_value[parsed['timestamp']] ['battery']=self._battery
 
 
         self._last_seen = datetime.now(UTC)
@@ -141,7 +140,7 @@ class MedisanaCoordinator(DataUpdateCoordinator):
 
     @callback
     def _bluetooth_callback(self, service_info: bluetooth.BluetoothServiceInfoBleak, _: Any) -> None:
-        _LOGGER.warning(f"BLE device data received from{service_info.address}")
+        _LOGGER.warning(f"BLE device data received from: {service_info.address}")
         _LOGGER.warning(f"Got service_info: {service_info}")
 
         self._rssi = service_info.rssi
@@ -340,7 +339,8 @@ class MbpsLastMeasurement(CoordinatorEntity, SensorEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Update the sensor with the latest value."""
-        if self.coordinator.data is None:
+        if not self.coordinator.data:
+            _LOGGER.warning("No data received in MbpsLastMeasurement")
             return
 
         key = max(self.coordinator.data.keys())

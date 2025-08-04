@@ -14,9 +14,9 @@ _LOGGER = logging.getLogger(__name__)
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
-async def async_setup(hass: HomeAssistant, config: dict) -> bool:#noqa ARG001
-    """Set up via configuration.yaml (nicht verwendet)."""
-    return True  # Oder False, wenn du nur config flow unterstützen möchtest
+async def async_setup(hass: HomeAssistant, config: dict) -> bool: #noqa ARG001
+    """Set up via configuration.yaml (not supported)."""
+    return False
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

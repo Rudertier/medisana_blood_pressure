@@ -29,6 +29,7 @@ class MedisanaBPBluetoothDeviceData(BluetoothData):
         self, data: BluetoothServiceInfo | BluetoothServiceInfoBleak
     ) -> None:
         _LOGGER.warning(f"Start update {data}, not implemented")
+        raise NotImplementedError("This method is not used during config flow")
 
 
     def supported(self, service_info: BluetoothServiceInfo | BluetoothServiceInfoBleak) -> bool:
@@ -36,7 +37,7 @@ class MedisanaBPBluetoothDeviceData(BluetoothData):
         return bool(service_info.name and service_info.name.startswith("1872B"))
 
     @property
-    def title(self)->str|None:
+    def title(self)->str:
         return "Medisana Blutdruckmesser"
 
     def get_device_name(self, device_id:str|None = None)->str|None: #NOQA ARG002
@@ -65,7 +66,7 @@ def parse_blood_pressure(data: bytes) -> dict[str,int|float|str|datetime|None]: 
             exponent = exponent - 0x10
         if mantissa >= 0x800: #noqa PLR2004
             mantissa = mantissa - 0x1000
-        return mantissa * (10 ** exponent)
+        return float(mantissa) * pow(10, exponent)
 
     result['systolic'] = parse_sfloat(data[offset:offset+2])
     offset += 2
