@@ -6,7 +6,7 @@ from datetime import UTC, datetime, timedelta
 import logging
 from typing import Any
 
-from bleak import BleakClient, BleakError
+from bleak import BleakClient, BleakError, BleakGATTCharacteristic
 from homeassistant.components import bluetooth
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -16,6 +16,7 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import SIGNAL_STRENGTH_DECIBELS_MILLIWATT, UnitOfPressure
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import (
@@ -30,14 +31,12 @@ _LOGGER = logging.getLogger(__name__)
 WATCHDOG_TIMEOUT = timedelta(minutes=2)
 
 async def async_setup_entry(
-    hass: HomeAssistant,
-    entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback
+        hass: HomeAssistant,
+        entry: ConfigEntry,
+        async_add_entities: AddEntitiesCallback
 ) -> None:
     """Set up Medisana blood pressure sensor from a config entry."""
     _LOGGER.warning(f"Sensor async_setup_entry: {entry}")
-
-    coordinator: MedisanaCoordinator
 
     try:
         coordinator: MedisanaCoordinator = hass.data[DOMAIN][entry.entry_id]
@@ -99,8 +98,8 @@ class MedisanaCoordinator(DataUpdateCoordinator):
 
         if parsed is not None:
             self._latest_value[parsed['timestamp']] = parsed
-            self._latest_value[parsed['timestamp']] ['rssi']=self._rssi
-            self._latest_value[parsed['timestamp']] ['battery_level']=self._battery
+            self._latest_value[parsed['timestamp']]['rssi'] = self._rssi
+            self._latest_value[parsed['timestamp']]['battery'] = self._battery
 
 
         self._last_seen = datetime.now(UTC)
@@ -139,7 +138,7 @@ class MedisanaCoordinator(DataUpdateCoordinator):
 
     @callback
     def _bluetooth_callback(self, service_info: bluetooth.BluetoothServiceInfoBleak, _: Any) -> None:
-        _LOGGER.warning(f"BLE device data received from{service_info.address}")
+        _LOGGER.warning(f"BLE device data received from: {service_info.address}")
         _LOGGER.warning(f"Got service_info: {service_info}")
 
         self._rssi = service_info.rssi
@@ -169,15 +168,15 @@ class MedisanaCoordinator(DataUpdateCoordinator):
 class MedisanaRestoreSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
     """Basisklasse für Medisana-Sensoren mit RestoreEntity-Unterstützung."""
 
-    def __init__(
-        self,
-        coordinator: MedisanaCoordinator,
-        name: str,
-        unique_id_suffix: str,
-        data_key: str,
-        unit: str | None = None,
-        device_class: SensorDeviceClass | None = None,
-        state_class: SensorStateClass | None = SensorStateClass.MEASUREMENT,
+    def __init__(  # noqa plr0913
+            self,
+            coordinator: MedisanaCoordinator,
+            name: str,
+            unique_id_suffix: str,
+            data_key: str,
+            unit: str | None = None,
+            device_class: SensorDeviceClass | None = None,
+            state_class: SensorStateClass | None = SensorStateClass.MEASUREMENT,
     ) -> None:
         super().__init__(coordinator)
         self._attr_name = name
@@ -206,6 +205,7 @@ class MedisanaRestoreSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         if not self.coordinator.data:
+            _LOGGER.warning("No data received from coordinator")
             return
 
         key = max(self.coordinator.data.keys())
@@ -225,6 +225,8 @@ class MedisanaRestoreSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
 
 
 class MbpsBattery(MedisanaRestoreSensor):
+    """Sensor containing Battery data."""
+
     def __init__(self, coordinator: MedisanaCoordinator) -> None:
         super().__init__(
             coordinator,
@@ -235,7 +237,10 @@ class MbpsBattery(MedisanaRestoreSensor):
             device_class=SensorDeviceClass.BATTERY,
         )
 
+
 class MbpsSystolic(MedisanaRestoreSensor):
+    """Sensor containing the systolic blood pressure in mmHg."""
+
     def __init__(self, coordinator: MedisanaCoordinator) -> None:
         super().__init__(
             coordinator,
@@ -246,7 +251,10 @@ class MbpsSystolic(MedisanaRestoreSensor):
             device_class=SensorDeviceClass.PRESSURE,
         )
 
+
 class MbpsDiastolic(MedisanaRestoreSensor):
+    """Sensor containing the diastolic blood pressure in mmHg."""
+
     def __init__(self, coordinator: MedisanaCoordinator) -> None:
         super().__init__(
             coordinator,
@@ -257,7 +265,10 @@ class MbpsDiastolic(MedisanaRestoreSensor):
             device_class=SensorDeviceClass.PRESSURE,
         )
 
+
 class MbpsMeanArterial(MedisanaRestoreSensor):
+    """Sensor containing the mean arterial blood pressure in mmHg."""
+
     def __init__(self, coordinator: MedisanaCoordinator) -> None:
         super().__init__(
             coordinator,
@@ -268,7 +279,10 @@ class MbpsMeanArterial(MedisanaRestoreSensor):
             device_class=SensorDeviceClass.PRESSURE,
         )
 
+
 class MbpsPulse(MedisanaRestoreSensor):
+    """Sensor containing the heart rate bpm."""
+
     def __init__(self, coordinator: MedisanaCoordinator) -> None:
         super().__init__(
             coordinator,
@@ -279,7 +293,10 @@ class MbpsPulse(MedisanaRestoreSensor):
             device_class=SensorDeviceClass.FREQUENCY,
         )
 
+
 class MbpsRssi(MedisanaRestoreSensor):
+    """Sensor containing the signal strength."""
+
     def __init__(self, coordinator: MedisanaCoordinator) -> None:
         super().__init__(
             coordinator,
@@ -290,7 +307,10 @@ class MbpsRssi(MedisanaRestoreSensor):
             device_class=SensorDeviceClass.SIGNAL_STRENGTH,
         )
 
+
 class MbpsUserId(MedisanaRestoreSensor):
+    """Sensor containing the user id."""
+
     def __init__(self, coordinator: MedisanaCoordinator) -> None:
         super().__init__(
             coordinator,
@@ -303,12 +323,8 @@ class MbpsUserId(MedisanaRestoreSensor):
         )
 
 
-
-
-
-
 class MbpsLastMeasurement(CoordinatorEntity, SensorEntity):
-    """Representation of the Medisana Blood Pressure sensor."""
+    """Sensor containing the last measurement time and the data transferred."""
 
     _attr_name = "Last Measurement"
     _attr_device_class = None
@@ -342,6 +358,3 @@ class MbpsLastMeasurement(CoordinatorEntity, SensorEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         return self.coordinator.data
-
-
-
