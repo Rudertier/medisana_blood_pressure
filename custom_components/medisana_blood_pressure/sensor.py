@@ -177,7 +177,7 @@ class MedisanaRestoreSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
         self._attr_native_unit_of_measurement = unit
         self._attr_device_class = device_class
         self._attr_state_class = state_class
-        self._native_value: int | None = None
+        self._native_value: int | str | float |None = None
         self._data_key = data_key
         self.device_info = coordinator.device_info
 
@@ -190,8 +190,8 @@ class MedisanaRestoreSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
         state = await self.async_get_last_state()
         if state and state.state not in (None, "unknown", "unavailable"):
             try:
-                self._native_value = int(state.state)
-                _LOGGER.debug(f"[Restore] {self._attr_name} restored value: {self._native_value}")
+                self._native_value = state.state
+                _LOGGER.warning(f"[Restore] {self._attr_name} restored value: {self._native_value}")
             except ValueError:
                 _LOGGER.warning(f"[Restore] Failed to restore {self._attr_name} from {state.state}")
 
