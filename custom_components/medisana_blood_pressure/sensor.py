@@ -61,7 +61,7 @@ class MedisanaCoordinator(DataUpdateCoordinator):
             hass,
             _LOGGER,
             name="Medisana Blood Pressure Coordinator",
-            update_interval=None  # Polling nicht notwendig, BLE Push via Callback
+            update_interval=None  # Polling not necessary, BLE Push via Callback
         )
         self.mac_address = mac_address
         self._latest_value: dict | None = None
@@ -124,8 +124,8 @@ class MedisanaCoordinator(DataUpdateCoordinator):
 
                 await client.start_notify(BP_MEASUREMENT_UUID, self.notification_handler)
 
-                # Hier warten, sonst beendet HA sofort die Verbindung
-                await asyncio.sleep(60)  # Z.B. 30 Sekunden warten auf Notifications
+                # Need to wait, else HA will terminate the connection
+                await asyncio.sleep(60)
 
                 await client.stop_notify(BP_MEASUREMENT_UUID)
                 _LOGGER.warning(f"Stopped notifications for {self.mac_address}")
@@ -159,7 +159,7 @@ class MedisanaCoordinator(DataUpdateCoordinator):
 
 
 class MedisanaRestoreSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
-    """Basisklasse für Medisana-Sensoren mit RestoreEntity-Unterstützung."""
+    """Base class for Medisana-Sensors with RestoreEntity-Capability."""
 
     def __init__(  # noqa plr0913
             self,
