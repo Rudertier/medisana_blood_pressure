@@ -25,6 +25,13 @@ class MedisanaBPBluetoothDeviceData(BluetoothData):
         self._event = asyncio.Event()
         _LOGGER.warning("Initializing MedisanaBPBluetoothDeviceData")
 
+    def _start_update(
+        self, data: BluetoothServiceInfo | BluetoothServiceInfoBleak
+    ) -> None:
+        _LOGGER.warning(f"Start update {data}, not implemented")
+        raise NotImplementedError("This method is not used during config flow")
+
+
     def supported(self, service_info: BluetoothServiceInfo | BluetoothServiceInfoBleak) -> bool:
         """Return True if this device is supported."""
         _LOGGER.warning(f"supported?: {service_info} -> {bool(service_info.name and service_info.name.startswith("1872B"))}")

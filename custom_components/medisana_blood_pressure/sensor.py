@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 import logging
 from typing import Any
 
@@ -28,7 +28,7 @@ from .const import BP_MEASUREMENT_UUID, CHARACTERISTIC_BATTERY, DOMAIN
 from .medisana_bp import parser
 
 _LOGGER = logging.getLogger(__name__)
-WATCHDOG_TIMEOUT = timedelta(minutes=2)
+
 
 async def async_setup_entry(
         hass: HomeAssistant,
@@ -70,11 +70,12 @@ class MedisanaCoordinator(DataUpdateCoordinator):
         self._rssi: int | None = None
         self._battery: int | None = None
 
-        self.device_info = {            "identifiers": {("medisana_blood_pressure", self.mac_address)},
-            "name": "Medisana Blood Pressure Monitor",
-            "manufacturer": "Medisana",
-            "model": "BP BLE Device",
-        }
+        self.device_info: DeviceInfo = DeviceInfo(manufacturer="Medisana",
+                                                  model="BP BLE Device",
+                                                  name="Medisana Blood Pressure Monitor",
+                                                  serial_number=None,
+                                                  identifiers={("medisana_blood_pressure", self.mac_address)},
+                                                  )
 
         self._unsub = bluetooth.async_register_callback(
             hass,
@@ -87,7 +88,7 @@ class MedisanaCoordinator(DataUpdateCoordinator):
         _LOGGER.warning(f"Bluetooth callback registered for {self.mac_address}")
         _LOGGER.warning(f"Coordinator initialized: {id(self)}")
 
-    def notification_handler(self, sender, data)->None:
+    def notification_handler(self, sender: BleakGATTCharacteristic, data: bytearray) -> None:
         _LOGGER.warning(f"Notification from {sender}: {data.hex()}")
         parsed = parser.parse_blood_pressure(data)
 
@@ -101,13 +102,11 @@ class MedisanaCoordinator(DataUpdateCoordinator):
             self._latest_value[parsed['timestamp']]['rssi'] = self._rssi
             self._latest_value[parsed['timestamp']]['battery'] = self._battery
 
-
         self._last_seen = datetime.now(UTC)
         _LOGGER.warning(f"notification_handler New value for self._latest_value: {self._latest_value}")
         self.async_set_updated_data(self._latest_value)
 
-
-    async def connect_and_subscribe(self):
+    async def connect_and_subscribe(self) -> None:
         """Connect to the device and subscribe to blood pressure notifications."""
         _LOGGER.warning(f"Connecting to {self.mac_address} to start notifications")
 
@@ -120,7 +119,7 @@ class MedisanaCoordinator(DataUpdateCoordinator):
                 _LOGGER.warning(f"Connected to {self.mac_address}, subscribing to notifications")
 
                 battery_char = client.services.get_characteristic(CHARACTERISTIC_BATTERY)
-                battery_payload = await client.read_gatt_char(battery_char)
+                battery_payload = await client.read_gatt_char(battery_char) if battery_char else [0]
                 self._battery = int(battery_payload[0])
 
                 await client.start_notify(BP_MEASUREMENT_UUID, self.notification_handler)
@@ -135,7 +134,6 @@ class MedisanaCoordinator(DataUpdateCoordinator):
         except TimeoutError as error:
             _LOGGER.warning(f"Timed out {self.mac_address} {error}")
 
-
     @callback
     def _bluetooth_callback(self, service_info: bluetooth.BluetoothServiceInfoBleak, _: Any) -> None:
         _LOGGER.warning(f"BLE device data received from: {service_info.address}")
@@ -144,19 +142,14 @@ class MedisanaCoordinator(DataUpdateCoordinator):
         self._rssi = service_info.rssi
         self.hass.async_create_task(self.connect_and_subscribe())
 
-
         _LOGGER.warning(f"Parsed Data in callback: {self._parsed_data}")
 
-
-
-
-    async def _async_update_data(self) -> int | None:
+    async def _async_update_data(self) -> dict[Any, Any]:
         """Fetch latest data."""
         _LOGGER.warning(f"_async_update_data returning {self._latest_value}")
         return self._latest_value
 
-
-    async def async_will_remove_from_hass(self):
+    async def async_will_remove_from_hass(self) -> None:
         """Cleanup on unload."""
         if self._unsub:
             self._unsub()
@@ -334,24 +327,25 @@ class MbpsLastMeasurement(CoordinatorEntity, SensorEntity):
     def __init__(self, coordinator: MedisanaCoordinator) -> None:
         super().__init__(coordinator)
         self._attr_unique_id = f"medisana_bp_timestamp_{coordinator.mac_address}"
-        self._native_value: int | None = None
-        self.device_info= coordinator.device_info
+        self._native_value: str | None = None
+        self.device_info = coordinator.device_info
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Update the sensor with the latest value."""
-        if self.coordinator.data is None:
+        if not self.coordinator.data:
+            _LOGGER.warning("No data received in MbpsLastMeasurement")
             return
 
         key = max(self.coordinator.data.keys())
 
         if key is not None:
-            self._native_value = key
+            self._native_value = str(key)
 
         self.async_write_ha_state()
 
     @property
-    def native_value(self) -> int | None:
+    def native_value(self) -> str | None:
         return self._native_value
 
     @property
