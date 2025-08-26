@@ -4,9 +4,10 @@ This custom integration enables Home Assistant to read measurements from a **Med
 Big thanks to [@bkbilly](https://github.com/bkbilly) for his great work on [medisanabp_ble](https://github.com/bkbilly/medisanabp_ble) — I heavily relied on it for this project.
 
 ## ⚙️ Features
-- Automatic detection of the blood pressure monitor when active
-- Connects via BLE to retrieve data using `BleakClient`
-- Parses and exposes the following sensor data:
+- Automatic detection of the blood pressure monitor when it becomes active
+- Direct BLE connection using `BleakClient` to retrieve data
+- No polling required – integration listens for BLE advertisements and reacts instantly
+- Parses and exposes the following sensor data in Home Assistant:
   - Systolic Pressure
   - Diastolic Pressure
   - Mean Arterial Pressure
@@ -28,6 +29,44 @@ It does **not poll** the device regularly—instead, it **reacts to BLE advertis
 - The integration connects to device using BleakClient and subscribes to blood pressure measurement characteristics
 - The received *GATT Notification Received* is then processed by the `notification_handler` which parses and stores the data
 - The Coordinator broadcasts update to all sensor entities, which recieve the data (`_handle_coordinator_update`) and update their own state
+
+Sometimes the synchronization fails; however, the data is **not lost**. 
+It will be transferred the next time and stored in the attributes of the Last-Measurement sensor.
+
+## 📊 Example Automation
+
+This example automation logs the latest measurements (systolic, diastolic, pulse, etc.) and sends them to a notification service.
+All data, including missed measurements, is transferred to a CSV file.
+You can adjust the `notify.blood_pressure` target to your preferred notification service.
+
+```yaml
+alias: Export blood pressure to csv
+description: >
+  Log the latest blood pressure measurements into a CSV-friendly message.
+  Includes timestamp, systolic/diastolic pressure, mean arterial pressure,
+  pulse, user id, status, RSSI, and battery level.
+triggers:
+  - trigger: state
+    entity_id:
+      - sensor.last_measurement
+conditions: []
+actions:
+  - action: notify.send_message
+    data:
+      message: >
+        {% for entry in states.sensor.last_measurement.attributes.values()
+          | selectattr('timestamp', 'defined') | list %}
+          {{ entry.systolic }}, {{ entry.diastolic }},
+          {{ entry.mean_arterial_pressure }},
+          {{ entry.timestamp.strftime('%Y-%m-%d %H:%M') }},
+          {{ entry.pulse_rate }}, {{ entry.user_id }},
+          {{ entry.measurement_status }}, {{ entry.rssi }},
+          {{ entry.battery }}
+        {% endfor %}
+    target:
+      entity_id: notify.blood_pressure
+mode: single
+```
 
 ## License
 

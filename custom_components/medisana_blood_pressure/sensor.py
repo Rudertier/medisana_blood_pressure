@@ -2,10 +2,11 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
 from datetime import UTC, datetime
 import logging
 from typing import Any
-from collections.abc import Callable
+
 from bleak import BleakClient, BleakError, BleakGATTCharacteristic
 from homeassistant.components import bluetooth
 from homeassistant.components.sensor import (
