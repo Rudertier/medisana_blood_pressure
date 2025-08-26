@@ -72,6 +72,7 @@ mode: single
 Currently, this integration has been tested and confirmed to work with:
 
 - **Medisana BU 570**
+- **Medisana BU 546 connect**
 
 If you successfully use this integration with another Medisana device, please open an issue or pull request to help extend the supported list.
 
