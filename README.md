@@ -67,6 +67,13 @@ actions:
       entity_id: notify.blood_pressure
 mode: single
 ```
+## ✅ Supported Devices
+
+Currently, this integration has been tested and confirmed to work with:
+
+- **Medisana BU 570**
+
+If you successfully use this integration with another Medisana device, please open an issue or pull request to help extend the supported list.
 
 ## License
 
