@@ -64,7 +64,7 @@ class MedisanaCoordinator(DataUpdateCoordinator):
             update_interval=None  # Polling not necessary, BLE Push via Callback
         )
         self.mac_address = mac_address
-        self._latest_value: dict | None = None
+        self._latest_value: dict = {}
         self._last_seen: datetime | None = None
         self._parsed_data: dict | None = None
         self._rssi: int | None = None
@@ -177,7 +177,7 @@ class MedisanaRestoreSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
         self._attr_native_unit_of_measurement = unit
         self._attr_device_class = device_class
         self._attr_state_class = state_class
-        self._native_value: int | str | float |None = None
+        self._native_value: int | str | float | None = None
         self._data_key = data_key
         self.device_info = coordinator.device_info
 
@@ -213,7 +213,7 @@ class MedisanaRestoreSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
         self.async_write_ha_state()
 
     @property
-    def native_value(self) -> int | None:
+    def native_value(self) -> int | str | float | None:
         return self._native_value
 
 
