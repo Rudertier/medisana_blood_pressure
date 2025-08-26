@@ -5,7 +5,7 @@ import asyncio
 from datetime import UTC, datetime
 import logging
 from typing import Any
-
+from collections.abc import Callable
 from bleak import BleakClient, BleakError, BleakGATTCharacteristic
 from homeassistant.components import bluetooth
 from homeassistant.components.sensor import (
@@ -76,7 +76,7 @@ class MedisanaCoordinator(DataUpdateCoordinator):
                                                   serial_number=None,
                                                   identifiers={("medisana_blood_pressure", self.mac_address)},
                                                   )
-
+        self._unsub: Callable[[], None] | None = None
         self._unsub = bluetooth.async_register_callback(
             hass,
             self._bluetooth_callback,
@@ -151,7 +151,7 @@ class MedisanaCoordinator(DataUpdateCoordinator):
 
     async def async_will_remove_from_hass(self) -> None:
         """Cleanup on unload."""
-        if self._unsub:
+        if self._unsub is not None:
             self._unsub()
             self._unsub = None
 
