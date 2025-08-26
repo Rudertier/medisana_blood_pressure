@@ -2,11 +2,10 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable
 from datetime import UTC, datetime
 import logging
 from typing import Any
-
+from collections.abc import Callable
 from bleak import BleakClient, BleakError, BleakGATTCharacteristic
 from homeassistant.components import bluetooth
 from homeassistant.components.sensor import (
@@ -62,7 +61,7 @@ class MedisanaCoordinator(DataUpdateCoordinator):
             hass,
             _LOGGER,
             name="Medisana Blood Pressure Coordinator",
-            update_interval=None  # Polling nicht notwendig, BLE Push via Callback
+            update_interval=None  # Polling not necessary, BLE Push via Callback
         )
         self.mac_address = mac_address
         self._latest_value: dict = {}
@@ -77,8 +76,8 @@ class MedisanaCoordinator(DataUpdateCoordinator):
                                                   serial_number=None,
                                                   identifiers={("medisana_blood_pressure", self.mac_address)},
                                                   )
-
-        self._unsub: Callable | None = bluetooth.async_register_callback(
+        self._unsub: Callable[[], None] | None = None
+        self._unsub = bluetooth.async_register_callback(
             hass,
             self._bluetooth_callback,
             # None,
@@ -125,8 +124,8 @@ class MedisanaCoordinator(DataUpdateCoordinator):
 
                 await client.start_notify(BP_MEASUREMENT_UUID, self.notification_handler)
 
-                # Hier warten, sonst beendet HA sofort die Verbindung
-                await asyncio.sleep(60)  # Z.B. 30 Sekunden warten auf Notifications
+                # Need to wait, else HA will terminate the connection
+                await asyncio.sleep(60)
 
                 await client.stop_notify(BP_MEASUREMENT_UUID)
                 _LOGGER.warning(f"Stopped notifications for {self.mac_address}")
@@ -147,17 +146,12 @@ class MedisanaCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self) -> dict[Any, Any]:
         """Fetch latest data."""
-        _LOGGER.warning(f"Starting _async_update_data for {self.mac_address}")
-        try:
-            _LOGGER.warning(f"_async_update_data returning {self._latest_value}")
-            return self._latest_value
-        except Exception as e:
-            _LOGGER.error("Error during _async_update_data: %s", e, exc_info=True)
-            raise
+        _LOGGER.warning(f"_async_update_data returning {self._latest_value}")
+        return self._latest_value
 
     async def async_will_remove_from_hass(self) -> None:
         """Cleanup on unload."""
-        if self._unsub:
+        if self._unsub is not None:
             self._unsub()
             self._unsub = None
 
@@ -165,7 +159,7 @@ class MedisanaCoordinator(DataUpdateCoordinator):
 
 
 class MedisanaRestoreSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
-    """Basisklasse für Medisana-Sensoren mit RestoreEntity-Unterstützung."""
+    """Base class for Medisana-Sensors with RestoreEntity-Capability."""
 
     def __init__(  # noqa plr0913
             self,
@@ -183,7 +177,7 @@ class MedisanaRestoreSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
         self._attr_native_unit_of_measurement = unit
         self._attr_device_class = device_class
         self._attr_state_class = state_class
-        self._native_value: int | None = None
+        self._native_value: int | str | float | None = None
         self._data_key = data_key
         self.device_info = coordinator.device_info
 
@@ -196,8 +190,8 @@ class MedisanaRestoreSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
         state = await self.async_get_last_state()
         if state and state.state not in (None, "unknown", "unavailable"):
             try:
-                self._native_value = int(state.state)
-                _LOGGER.debug(f"[Restore] {self._attr_name} restored value: {self._native_value}")
+                self._native_value = state.state
+                _LOGGER.warning(f"[Restore] {self._attr_name} restored value: {self._native_value}")
             except ValueError:
                 _LOGGER.warning(f"[Restore] Failed to restore {self._attr_name} from {state.state}")
 
@@ -219,7 +213,7 @@ class MedisanaRestoreSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
         self.async_write_ha_state()
 
     @property
-    def native_value(self) -> int | None:
+    def native_value(self) -> int | str | float | None:
         return self._native_value
 
 
