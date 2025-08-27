@@ -26,7 +26,7 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 from .const import BP_MEASUREMENT_UUID, CHARACTERISTIC_BATTERY, DOMAIN
-from .medisana_bp import parser
+from .medisana_bp import helpers, parser
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -108,15 +108,15 @@ class MedisanaCoordinator(DataUpdateCoordinator):
 
     async def connect_and_subscribe(self) -> None:
         """Connect to the device and subscribe to blood pressure notifications."""
-        _LOGGER.info(f"Connecting to {self.mac_address} to start notifications")
+        _LOGGER.info(f"Connecting to {helpers.mask_mac(self.mac_address)} to start notifications")
 
         try:
             async with BleakClient(self.mac_address) as client:
                 if not client.is_connected:
-                    _LOGGER.error(f"Failed to connect to {self.mac_address}")
+                    _LOGGER.error(f"Failed to connect to {helpers.mask_mac(self.mac_address)}")
                     return
 
-                _LOGGER.debug(f"Connected to {self.mac_address}, subscribing to notifications")
+                _LOGGER.debug(f"Connected to {helpers.mask_mac(self.mac_address)}, subscribing to notifications")
 
                 battery_char = client.services.get_characteristic(CHARACTERISTIC_BATTERY)
                 battery_payload = await client.read_gatt_char(battery_char) if battery_char else [0]
@@ -128,12 +128,14 @@ class MedisanaCoordinator(DataUpdateCoordinator):
                 await asyncio.sleep(60)
 
                 await client.stop_notify(BP_MEASUREMENT_UUID)
-                _LOGGER.debug(f"Stopped notifications for {self.mac_address}")
+                _LOGGER.debug(f"Stopped notifications for {helpers.mask_mac(self.mac_address)}")
 
         except BleakError:
-            _LOGGER.exception("Failed to connect to Medisana Blood Pressure device")
+            _LOGGER.exception(f"Failed to connect to Medisana Blood Pressure device "
+                              f"{helpers.mask_mac(self.mac_address)}")
         except TimeoutError:
-            _LOGGER.exception("Connection attempt to Medisana Blood Pressure device timed out")
+            _LOGGER.exception(f"Connection attempt to Medisana Blood Pressure device timed out "
+                              f"{helpers.mask_mac(self.mac_address)}")
 
     @callback
     def _bluetooth_callback(self, service_info: bluetooth.BluetoothServiceInfoBleak, _: Any) -> None:
@@ -156,7 +158,7 @@ class MedisanaCoordinator(DataUpdateCoordinator):
             self._unsub()
             self._unsub = None
 
-        _LOGGER.debug(f"Unsubscribed BLE callback for {self.mac_address}")
+        _LOGGER.debug(f"Unsubscribed BLE callback for {helpers.mask_mac(self.mac_address)}")
 
 
 class MedisanaRestoreSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
