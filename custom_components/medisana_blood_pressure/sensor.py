@@ -131,10 +131,9 @@ class MedisanaCoordinator(DataUpdateCoordinator):
                 _LOGGER.debug(f"Stopped notifications for {self.mac_address}")
 
         except BleakError:
-            _LOGGER.exception("Failed to connect to %s", self.mac_address)
-
+            _LOGGER.exception("Failed to connect to Medisana Blood Pressure device")
         except TimeoutError:
-            _LOGGER.exception("Timed out %s", self.mac_address)
+            _LOGGER.exception("Connection attempt to Medisana Blood Pressure device timed out")
 
     @callback
     def _bluetooth_callback(self, service_info: bluetooth.BluetoothServiceInfoBleak, _: Any) -> None:
