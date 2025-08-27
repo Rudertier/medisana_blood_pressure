@@ -37,7 +37,7 @@ async def async_setup_entry(
         async_add_entities: AddEntitiesCallback
 ) -> None:
     """Set up Medisana blood pressure sensor from a config entry."""
-    _LOGGER.warning(f"Sensor async_setup_entry: {entry}")
+    _LOGGER.info(f"Sensor async_setup_entry: {entry}")
 
     try:
         coordinator: MedisanaCoordinator = hass.data[DOMAIN][entry.entry_id]
@@ -86,14 +86,13 @@ class MedisanaCoordinator(DataUpdateCoordinator):
             bluetooth.BluetoothScanningMode.ACTIVE,
         )
 
-        _LOGGER.warning(f"Bluetooth callback registered for {self.mac_address}")
-        _LOGGER.warning(f"Coordinator initialized: {id(self)}")
+        _LOGGER.debug(f"Coordinator initialized: {id(self)}")
 
     def notification_handler(self, sender: BleakGATTCharacteristic, data: bytearray) -> None:
-        _LOGGER.warning(f"Notification from {sender}: {data.hex()}")
+        _LOGGER.debug(f"Notification from {sender}: {data.hex()}")
         parsed = parser.parse_blood_pressure(data)
 
-        _LOGGER.warning(f"Parsed data: {parsed}")
+        _LOGGER.debug(f"Parsed data: {parsed}")
 
         if self._latest_value is None:
             self._latest_value = {}
@@ -104,12 +103,12 @@ class MedisanaCoordinator(DataUpdateCoordinator):
             self._latest_value[parsed['timestamp']]['battery'] = self._battery
 
         self._last_seen = datetime.now(UTC)
-        _LOGGER.warning(f"notification_handler New value for self._latest_value: {self._latest_value}")
+        _LOGGER.debug(f"notification_handler New value for self._latest_value: {self._latest_value}")
         self.async_set_updated_data(self._latest_value)
 
     async def connect_and_subscribe(self) -> None:
         """Connect to the device and subscribe to blood pressure notifications."""
-        _LOGGER.warning(f"Connecting to {self.mac_address} to start notifications")
+        _LOGGER.info(f"Connecting to {self.mac_address} to start notifications")
 
         try:
             async with BleakClient(self.mac_address) as client:
@@ -117,7 +116,7 @@ class MedisanaCoordinator(DataUpdateCoordinator):
                     _LOGGER.error(f"Failed to connect to {self.mac_address}")
                     return
 
-                _LOGGER.warning(f"Connected to {self.mac_address}, subscribing to notifications")
+                _LOGGER.debug(f"Connected to {self.mac_address}, subscribing to notifications")
 
                 battery_char = client.services.get_characteristic(CHARACTERISTIC_BATTERY)
                 battery_payload = await client.read_gatt_char(battery_char) if battery_char else [0]
@@ -129,25 +128,25 @@ class MedisanaCoordinator(DataUpdateCoordinator):
                 await asyncio.sleep(60)
 
                 await client.stop_notify(BP_MEASUREMENT_UUID)
-                _LOGGER.warning(f"Stopped notifications for {self.mac_address}")
+                _LOGGER.debug(f"Stopped notifications for {self.mac_address}")
         except BleakError as error:
-            _LOGGER.warning(f"Failed to connect to {self.mac_address} {error}")
+            _LOGGER.error(f"Failed to connect to {self.mac_address} {error}")
         except TimeoutError as error:
-            _LOGGER.warning(f"Timed out {self.mac_address} {error}")
+            _LOGGER.error(f"Timed out {self.mac_address} {error}")
 
     @callback
     def _bluetooth_callback(self, service_info: bluetooth.BluetoothServiceInfoBleak, _: Any) -> None:
-        _LOGGER.warning(f"BLE device data received from: {service_info.address}")
-        _LOGGER.warning(f"Got service_info: {service_info}")
+        _LOGGER.debug(f"BLE device data received from: {service_info.address}")
+        _LOGGER.debug(f"Got service_info: {service_info}")
 
         self._rssi = service_info.rssi
         self.hass.async_create_task(self.connect_and_subscribe())
 
-        _LOGGER.warning(f"Parsed Data in callback: {self._parsed_data}")
+        _LOGGER.debug(f"Parsed Data in callback: {self._parsed_data}")
 
     async def _async_update_data(self) -> dict[Any, Any]:
         """Fetch latest data."""
-        _LOGGER.warning(f"_async_update_data returning {self._latest_value}")
+        _LOGGER.debug(f"_async_update_data returning {self._latest_value}")
         return self._latest_value
 
     async def async_will_remove_from_hass(self) -> None:
@@ -156,7 +155,7 @@ class MedisanaCoordinator(DataUpdateCoordinator):
             self._unsub()
             self._unsub = None
 
-        _LOGGER.warning(f"Unsubscribed BLE callback for {self.mac_address}")
+        _LOGGER.debug(f"Unsubscribed BLE callback for {self.mac_address}")
 
 
 class MedisanaRestoreSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
@@ -192,9 +191,8 @@ class MedisanaRestoreSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
         if state and state.state not in (None, "unknown", "unavailable"):
             try:
                 self._native_value = state.state
-                _LOGGER.warning(f"[Restore] {self._attr_name} restored value: {self._native_value}")
             except ValueError:
-                _LOGGER.warning(f"[Restore] Failed to restore {self._attr_name} from {state.state}")
+                _LOGGER.error(f"Failed to restore {self._attr_name} from {state.state}")
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -207,9 +205,9 @@ class MedisanaRestoreSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
 
         if value is not None:
             self._native_value = value
-            _LOGGER.debug(f"[Update] {self._attr_name} updated: {self._native_value}")
+            _LOGGER.debug(f"Update {self._attr_name} updated: {self._native_value}")
         else:
-            _LOGGER.debug(f"[Update] {self._attr_name} not available in data")
+            _LOGGER.warning(f"Update {self._attr_name} not available in data")
 
         self.async_write_ha_state()
 

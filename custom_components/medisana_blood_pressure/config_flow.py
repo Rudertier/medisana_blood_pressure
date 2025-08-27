@@ -25,7 +25,7 @@ class MedisanaBPConfigFlow(ConfigFlow, domain=DOMAIN):
 
     def __init__(self) -> None:
         """Initialize the config flow."""
-        _LOGGER.warning("MedisanaBPConfigFlow initialized")
+        _LOGGER.info("MedisanaBPConfigFlow initialized")
         self._discovery_info: BluetoothServiceInfoBleak | None = None
         self._discovered_device: MedisanaBPBluetoothDeviceData | None = None
         self._discovered_devices: dict[str, str] = {}
@@ -34,7 +34,7 @@ class MedisanaBPConfigFlow(ConfigFlow, domain=DOMAIN):
         self, discovery_info: BluetoothServiceInfoBleak
     ) -> ConfigFlowResult:
         """Handle the bluetooth discovery step."""
-        _LOGGER.warning("MedisanaBPConfigFlow async_step_bluetooth")
+        _LOGGER.debug("MedisanaBPConfigFlow async_step_bluetooth")
         await self.async_set_unique_id(discovery_info.address)
         self._abort_if_unique_id_configured()
         device = MedisanaBPBluetoothDeviceData()
@@ -49,7 +49,7 @@ class MedisanaBPConfigFlow(ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Confirm discovery."""
-        _LOGGER.warning("MedisanaBPConfigFlow async_step_bluetooth_confirm")
+        _LOGGER.debug("MedisanaBPConfigFlow async_step_bluetooth_confirm")
         assert self._discovered_device is not None
         device = self._discovered_device
         assert self._discovery_info is not None
@@ -69,7 +69,7 @@ class MedisanaBPConfigFlow(ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Handle the user step to pick discovered device."""
-        _LOGGER.warning("MedisanaBPConfigFlow async_step_user")
+        _LOGGER.debug("MedisanaBPConfigFlow async_step_user")
         if user_input is not None:
             address = user_input[CONF_ADDRESS]
             await self.async_set_unique_id(address, raise_on_progress=False)
@@ -90,10 +90,10 @@ class MedisanaBPConfigFlow(ConfigFlow, domain=DOMAIN):
                 )
 
         if not self._discovered_devices:
-            _LOGGER.warning("No discovered devices found")
+            _LOGGER.debug("No discovered devices found")
             return self.async_abort(reason="no_devices_found")
 
-        _LOGGER.warning("Wait for User")
+        _LOGGER.debug("Wait for User")
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(

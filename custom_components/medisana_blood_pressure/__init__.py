@@ -19,7 +19,7 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:#noqa ARG001
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Medisana Blood Pressure BLE from a config entry."""
-    _LOGGER.warning(f"Setting up config entry for {DOMAIN}")
+    _LOGGER.info(f"Setting up config entry for {DOMAIN}")
 
     hass.data.setdefault(DOMAIN, {})
 

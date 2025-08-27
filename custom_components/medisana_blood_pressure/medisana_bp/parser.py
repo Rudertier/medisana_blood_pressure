@@ -23,19 +23,21 @@ class MedisanaBPBluetoothDeviceData(BluetoothData):
     def __init__(self) -> None:
         super().__init__()
         self._event = asyncio.Event()
-        _LOGGER.warning("Initializing MedisanaBPBluetoothDeviceData")
+        _LOGGER.debug("Initializing MedisanaBPBluetoothDeviceData")
 
     def _start_update(
         self, data: BluetoothServiceInfo | BluetoothServiceInfoBleak
     ) -> None:
-        _LOGGER.warning(f"Start update {data}, not implemented")
+        _LOGGER.error(f"Start update {data}, not implemented")
         raise NotImplementedError("This method is not used during config flow")
 
 
     def supported(self, service_info: BluetoothServiceInfo | BluetoothServiceInfoBleak) -> bool:
         """Return True if this device is supported."""
-        _LOGGER.warning(f"supported?: {service_info} -> {bool(service_info.name and service_info.name.startswith("1872B"))}")
-        return bool(service_info.name and service_info.name.startswith("1872B"))
+        supported = bool(service_info.name and service_info.name.startswith("1872B"))
+        if not supported:
+            _LOGGER.error(f"Device {service_info.name} not supported. ({service_info})")
+        return supported
 
     @property
     def title(self)->str:
@@ -87,7 +89,7 @@ def parse_blood_pressure(data: bytes) -> dict[str,int|float|str|datetime|None]: 
         try:
             result['timestamp'] = datetime(year, month, day, hour, minute, second)
         except Exception as e:
-            _LOGGER.warning(f"Ungültiger Zeitstempel in Daten: {e}")
+            _LOGGER.warning(f"Invalid Timestamp: {e}")
             result['timestamp'] = None
     else:
         result['timestamp'] = None
