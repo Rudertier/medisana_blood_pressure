@@ -9,7 +9,8 @@ import struct
 
 from bluetooth_sensor_state_data import BluetoothData
 from habluetooth import BluetoothServiceInfo, BluetoothServiceInfoBleak
-from supported_devices import SUPPORTED_NAME_PREFIX, SUPPORTED_SERVICE_UUIDS
+
+from .supported_devices import SUPPORTED_NAME_PREFIX, SUPPORTED_SERVICE_UUIDS
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,7 +35,6 @@ class MedisanaBPBluetoothDeviceData(BluetoothData):
 
     def supported(self, service_info: BluetoothServiceInfo | BluetoothServiceInfoBleak) -> bool:
         """Return True if this device is supported."""
-
         # Debug info
         _LOGGER.warning(
             "Checking support for device: name=%s, uuids=%s, mfr=%s",

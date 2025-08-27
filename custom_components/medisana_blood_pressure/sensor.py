@@ -129,10 +129,12 @@ class MedisanaCoordinator(DataUpdateCoordinator):
 
                 await client.stop_notify(BP_MEASUREMENT_UUID)
                 _LOGGER.debug(f"Stopped notifications for {self.mac_address}")
-        except BleakError as error:
-            _LOGGER.error(f"Failed to connect to {self.mac_address} {error}")
-        except TimeoutError as error:
-            _LOGGER.error(f"Timed out {self.mac_address} {error}")
+
+        except BleakError:
+            _LOGGER.exception("Failed to connect to %s", self.mac_address)
+
+        except TimeoutError:
+            _LOGGER.exception("Timed out %s", self.mac_address)
 
     @callback
     def _bluetooth_callback(self, service_info: bluetooth.BluetoothServiceInfoBleak, _: Any) -> None:
@@ -192,7 +194,7 @@ class MedisanaRestoreSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
             try:
                 self._native_value = state.state
             except ValueError:
-                _LOGGER.error(f"Failed to restore {self._attr_name} from {state.state}")
+                _LOGGER.exception(f"Failed to restore {self._attr_name} from {state.state}")
 
     @callback
     def _handle_coordinator_update(self) -> None:
