@@ -10,4 +10,5 @@ SUPPORTED_SERVICE_UUIDS = {
     "00001810-0000-1000-8000-00805f9b34fb",  # Standard Blood Pressure Service
     "00002a35-0000-1000-8000-00805f9b34fb",  # Blood Pressure Measurement characteristic
 }
+# Known manufacturer ids for supported devices
 MANUFACTURER_IDS = {18498, 31256}
