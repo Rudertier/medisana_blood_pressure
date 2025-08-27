@@ -10,6 +10,12 @@ import struct
 from bluetooth_sensor_state_data import BluetoothData
 from habluetooth import BluetoothServiceInfo, BluetoothServiceInfoBleak
 
+from .supported_devices import (
+    MANUFACTURER_IDS,
+    SUPPORTED_NAME_PREFIX,
+    SUPPORTED_SERVICE_UUIDS,
+)
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -31,13 +37,29 @@ class MedisanaBPBluetoothDeviceData(BluetoothData):
         _LOGGER.error(f"Start update {data}, not implemented")
         raise NotImplementedError("This method is not used during config flow")
 
-
     def supported(self, service_info: BluetoothServiceInfo | BluetoothServiceInfoBleak) -> bool:
-        """Return True if this device is supported."""
-        supported = bool(service_info.name and service_info.name.startswith("1872B"))
-        if not supported:
-            _LOGGER.error(f"Device {service_info.name} not supported. ({service_info})")
-        return supported
+        """Return True if the device is supported.
+
+        Supports:
+        - Devices with name starting with "1872B"
+        - Devices with known manufacturer IDs (18498, 31256)
+        - Devices advertising standard Blood Pressure Service (0x1810 / UUID 00001810-0000-1000-8000-00805f9b34fb)
+        - Devices with any service UUID in SUPPORTED_SERVICE_UUIDS
+        """
+        # Name-based check
+        name_supported = bool(service_info.name and service_info.name.startswith(SUPPORTED_NAME_PREFIX))
+
+        # Manufacturer-based check
+        manufacturer_ids = getattr(service_info, "manufacturer_data", {}).keys()
+        manufacturer_supported = any(mid in MANUFACTURER_IDS for mid in manufacturer_ids)
+
+        # Service UUID check
+        uuids = getattr(service_info, "service_uuids", []) or []
+        service_supported = any(uuid.lower() in SUPPORTED_SERVICE_UUIDS for uuid in uuids)
+
+        is_supported = name_supported or manufacturer_supported or service_supported
+        _LOGGER.warning("supported?: %s -> %s", service_info, is_supported)
+        return is_supported
 
     @property
     def title(self)->str:
