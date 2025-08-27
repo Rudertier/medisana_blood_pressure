@@ -67,12 +67,22 @@ actions:
       entity_id: notify.blood_pressure
 mode: single
 ```
+
 ## ✅ Supported Devices
 
 Currently, this integration has been tested and confirmed to work with:
 
 - **Medisana BU 570**
 - **Medisana BU 546 connect**
+- **Medisana BU 575**
+
+The integration also supports devices that advertise with:
+
+- Device name starting with **"1872B"**
+- Manufacturer IDs **18498** or **31256**
+- Known vendor-specific service UUIDs:
+  - `0000fcf1-0000-1000-8000-00805f9b34fb`
+  - `0000fd69-0000-1000-8000-00805f9b34fb`
 
 If you successfully use this integration with another Medisana device, please open an issue or pull request to help extend the supported list.
 

@@ -10,7 +10,11 @@ import struct
 from bluetooth_sensor_state_data import BluetoothData
 from habluetooth import BluetoothServiceInfo, BluetoothServiceInfoBleak
 
-from .supported_devices import SUPPORTED_NAME_PREFIX, SUPPORTED_SERVICE_UUIDS
+from .supported_devices import (
+    MANUFACTURER_IDS,
+    SUPPORTED_NAME_PREFIX,
+    SUPPORTED_SERVICE_UUIDS,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,24 +38,28 @@ class MedisanaBPBluetoothDeviceData(BluetoothData):
         raise NotImplementedError("This method is not used during config flow")
 
     def supported(self, service_info: BluetoothServiceInfo | BluetoothServiceInfoBleak) -> bool:
-        """Return True if this device is supported."""
-        # Debug info
-        _LOGGER.warning(
-            "Checking support for device: name=%s, uuids=%s, mfr=%s",
-            service_info.name,
-            service_info.service_uuids,
-            service_info.manufacturer_data,
-        )
+        """Return True if the device is supported.
 
-        # Check 1: Name prefix (BU 570)
-        if service_info.name and service_info.name.startswith(SUPPORTED_NAME_PREFIX):
-            return True
+        Supports:
+        - Devices with name starting with "1872B"
+        - Devices with known manufacturer IDs (18498, 31256)
+        - Devices advertising standard Blood Pressure Service (0x1810 / UUID 00001810-0000-1000-8000-00805f9b34fb)
+        - Devices with any service UUID in SUPPORTED_SERVICE_UUIDS
+        """
+        # Name-based check
+        name_supported = bool(service_info.name and service_info.name.startswith(SUPPORTED_NAME_PREFIX))
 
-        # Check 2: Service UUIDs (BU 575 and future devices)
-        if any(uuid.lower() in SUPPORTED_SERVICE_UUIDS for uuid in service_info.service_uuids):
-            return True
-        _LOGGER.error(f"Device {service_info.name} not supported ({service_info}")
-        return False
+        # Manufacturer-based check
+        manufacturer_ids = getattr(service_info, "manufacturer_data", {}).keys()
+        manufacturer_supported = any(mid in MANUFACTURER_IDS for mid in manufacturer_ids)
+
+        # Service UUID check
+        uuids = getattr(service_info, "service_uuids", []) or []
+        service_supported = any(uuid.lower() in SUPPORTED_SERVICE_UUIDS for uuid in uuids)
+
+        is_supported = name_supported or manufacturer_supported or service_supported
+        _LOGGER.warning("supported?: %s -> %s", service_info, is_supported)
+        return is_supported
 
     @property
     def title(self)->str:
