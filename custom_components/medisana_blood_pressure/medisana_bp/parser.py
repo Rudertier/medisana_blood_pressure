@@ -9,6 +9,7 @@ import struct
 
 from bluetooth_sensor_state_data import BluetoothData
 from habluetooth import BluetoothServiceInfo, BluetoothServiceInfoBleak
+from supported_devices import SUPPORTED_NAME_PREFIX, SUPPORTED_SERVICE_UUIDS
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -31,13 +32,26 @@ class MedisanaBPBluetoothDeviceData(BluetoothData):
         _LOGGER.error(f"Start update {data}, not implemented")
         raise NotImplementedError("This method is not used during config flow")
 
-
     def supported(self, service_info: BluetoothServiceInfo | BluetoothServiceInfoBleak) -> bool:
         """Return True if this device is supported."""
-        supported = bool(service_info.name and service_info.name.startswith("1872B"))
-        if not supported:
-            _LOGGER.error(f"Device {service_info.name} not supported. ({service_info})")
-        return supported
+
+        # Debug info
+        _LOGGER.warning(
+            "Checking support for device: name=%s, uuids=%s, mfr=%s",
+            service_info.name,
+            service_info.service_uuids,
+            service_info.manufacturer_data,
+        )
+
+        # Check 1: Name prefix (BU 570)
+        if service_info.name and service_info.name.startswith(SUPPORTED_NAME_PREFIX):
+            return True
+
+        # Check 2: Service UUIDs (BU 575 and future devices)
+        if any(uuid.lower() in SUPPORTED_SERVICE_UUIDS for uuid in service_info.service_uuids):
+            return True
+        _LOGGER.error(f"Device {service_info.name} not supported ({service_info}")
+        return False
 
     @property
     def title(self)->str:
