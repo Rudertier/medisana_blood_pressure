@@ -1,4 +1,6 @@
 name: Mypy Type Check (uv + pyproject.toml)
+permissions:
+  contents: read
 
 on:
   push:
