@@ -1,0 +1,14 @@
+{
+    "config": {
+        "step": {
+            "bluetooth_confirm": {
+                "description": "Would you like to add the Medisana blood pressure device `{name}`?",
+                "title": "Confirm Medisana Blood Pressure Device"
+            }
+        },
+        "abort": {
+            "not_supported": "The Bluetooth device is not supported.",
+            "no_devices_found": "No matching Medisana blood pressure devices found."
+        }
+    }
+}
