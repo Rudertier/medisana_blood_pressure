@@ -4,10 +4,15 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.13.2"
 dependencies = [
+    "aiousbwatcher>=1.1.1",
     "bluetooth-sensor-state-data>=1.9.0",
     "homeassistant>=2025.8.0b2",
     "mypy>=1.17.1",
+    "pyserial>=3.5",
+    "pytest>=8.4.1",
+    "pytest-asyncio>=1.1.0",
     "ruff>=0.12.7",
+    "serial>=0.0.97",
     "types-requests>=2.32.4.20250611",
 ]
 [tool.ruff]
