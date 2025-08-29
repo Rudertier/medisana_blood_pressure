@@ -1,5 +1,11 @@
-import pytest
+"""Unit tests for Medisana blood pressure helper functions.
+
+This module tests the `mask_mac` utility, ensuring that valid MAC
+addresses are correctly masked while invalid ones are returned unchanged.
+"""
+
 from custom_components.medisana_blood_pressure.medisana_bp.helpers import mask_mac
+import pytest
 
 
 @pytest.mark.parametrize(

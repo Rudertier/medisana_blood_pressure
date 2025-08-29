@@ -27,10 +27,9 @@ jobs:
         curl -LsSf https://astral.sh/uv/install.sh | sh
         echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
-    - name: Install dependencies with uv
+    - name: Sync dependencies from pyproject.toml
       run: |
-        uv pip install -r requirements.txt
-        uv pip install pytest pytest-asyncio uvloop
+        uv sync --all-extras --dev
 
     - name: Run tests
       run: |
