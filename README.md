@@ -33,6 +33,15 @@ It does **not poll** the device regularly—instead, it **reacts to BLE advertis
 Sometimes the synchronization fails; however, the data is **not lost**. 
 It will be transferred the next time and stored in the attributes of the Last-Measurement sensor.
 
+### 📡 Bluetooth Limitations  
+
+This integration depends on Home Assistant’s Bluetooth stack to discover the Medisana blood pressure monitor. 
+Once the device is discovered, Home Assistant currently ignores subsequent advertisement messages from the sensor, 
+which means that no further callbacks are triggered. 
+As a result, it may take an unpredictable amount of time before the integration receives new data, 
+depending on when Home Assistant resets its Bluetooth discovery process. 
+If you experience delays or missed readings, this is most likely the cause.  
+
 ## 📊 Example Automation
 
 This example automation logs the latest measurements (systolic, diastolic, pulse, etc.) and sends them to a notification service.
