@@ -32,15 +32,17 @@ It does **not poll** the device regularly—instead, it **reacts to BLE advertis
 
 Sometimes the synchronization fails; however, the data is **not lost**. 
 It will be transferred the next time and stored in the attributes of the Last-Measurement sensor.
-
 ### 📡 Bluetooth Limitations  
 
-This integration depends on Home Assistant’s Bluetooth stack to discover the Medisana blood pressure monitor. 
-Once the device is discovered, Home Assistant currently ignores subsequent advertisement messages from the sensor, 
-which means that no further callbacks are triggered. 
-As a result, it may take an unpredictable amount of time before the integration receives new data, 
-depending on when Home Assistant resets its Bluetooth discovery process. 
-If you experience delays or missed readings, this is most likely the cause.  
+This integration depends on Home Assistant’s Bluetooth stack to discover the Medisana blood pressure monitor.  
+Once the device is discovered, Home Assistant currently ignores subsequent advertisement messages from the sensor,  
+which means that no further callbacks are triggered. As a result, it may take an unpredictable amount of time before the integration receives new data, depending on when Home Assistant resets its Bluetooth discovery process.  
+
+💡 **Recommended Solution**  
+To achieve stable and reliable synchronization, it is strongly recommended to use a **Bluetooth Proxy** on an ESP32 placed close to the blood pressure monitor.  
+
+👉 Learn more about setting up an ESP32 Bluetooth Proxy here: [ESPHome Projects – Bluetooth Proxies](https://esphome.io/projects/)  
+
 
 ## 📊 Example Automation
 
